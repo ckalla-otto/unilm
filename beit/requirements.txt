@@ -11,3 +11,4 @@ einops
 tensorboardX
 deepspeed==0.4.0
 scipy
+tfrecord
