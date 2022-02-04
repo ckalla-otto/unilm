@@ -92,9 +92,10 @@ class SmoothedValue(object):
 
 
 class MetricLogger(object):
-    def __init__(self, delimiter="\t"):
+    def __init__(self,training_steps_per_epoch:int, delimiter="\t"):
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
+        self.training_steps_per_epoch = training_steps_per_epoch
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
@@ -137,7 +138,7 @@ class MetricLogger(object):
         iter_time = SmoothedValue(fmt='{avg:.4f}')
         data_time = SmoothedValue(fmt='{avg:.4f}')
         batch_size = 64
-        iterable_length = int(20000/batch_size)
+        iterable_length = self.training_steps_per_epoch
         space_fmt = ':' + str(len(str(iterable_length))) + 'd'
         log_msg = [
             header,

@@ -39,7 +39,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     start_steps=None, lr_schedule_values=None, wd_schedule_values=None,
                     num_training_steps_per_epoch=None, update_freq=None):
     model.train(True)
-    metric_logger = utils.MetricLogger(delimiter="  ")
+    metric_logger = utils.MetricLogger(num_training_steps_per_epoch,delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     metric_logger.add_meter('min_lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
@@ -161,16 +161,16 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 
 @torch.no_grad()
-def evaluate(data_loader, model, device):
+def evaluate(data_loader, model, device, n_eval_steps=10):
     criterion = torch.nn.CrossEntropyLoss()
 
-    metric_logger = utils.MetricLogger(delimiter="  ")
+    metric_logger = utils.MetricLogger(n_eval_steps,delimiter="  ")
     header = 'Test:'
 
     # switch to evaluation mode
     model.eval()
 
-    for batch in metric_logger.log_every(data_loader, 10, header):
+    for batch_idx, batch in enumerate(metric_logger.log_every(data_loader, 10, header)):
         images = batch["image/data"]
         target = batch["class/pbk"].squeeze()
         images = images.to(device, non_blocking=True)
@@ -187,6 +187,8 @@ def evaluate(data_loader, model, device):
         metric_logger.update(loss=loss.item())
         metric_logger.meters['acc1'].update(acc1.item(), n=batch_size)
         metric_logger.meters['acc5'].update(acc5.item(), n=batch_size)
+        if batch_idx >=  n_eval_steps:
+            break
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print('* Acc@1 {top1.global_avg:.3f} Acc@5 {top5.global_avg:.3f} loss {losses.global_avg:.3f}'

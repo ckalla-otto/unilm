@@ -6,4 +6,6 @@ python run_class_finetuning.py --model beit_base_patch16_224 --data_path "/gener
                 --warmup_epochs 5 --epochs 90 --layer_decay 0.75 --drop_path 0.2 \
                 --weight_decay 0.05 --layer_scale_init_value 1e-5 --clip_grad 1.0 \
                 --device cuda \
+                --train_dataset_sample_size 20000 \
+                --eval_steps 10 \
                 --eval

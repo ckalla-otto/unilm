@@ -11,6 +11,7 @@
 # --------------------------------------------------------'
 import argparse
 import datetime
+import re
 import numpy as np
 import time
 import torch
@@ -196,6 +197,8 @@ def get_args():
                         help='url used to set up distributed training')
 
     parser.add_argument('--enable_deepspeed', action='store_true', default=False)
+    parser.add_argument("--eval_steps", type=int, default=10)
+    parser.add_argument("--train_dataset_sample_size",type=int,required=True,)
 
     known_args, _ = parser.parse_known_args()
 
@@ -463,7 +466,7 @@ def main(args, ds_init):
     total_batch_size = args.batch_size * args.update_freq * utils.get_world_size()
     print("Total batch size: ")
     #we have about 20k images per tf record file
-    num_training_steps_per_epoch = int(20000/total_batch_size) #len(dataset_train) // total_batch_size
+    num_training_steps_per_epoch = int(args.train_dataset_sample_size/total_batch_size) #len(dataset_train) // total_batch_size
     print("LR = %.8f" % args.lr)
     print("Batch size = %d" % total_batch_size)
     print("Update frequent = %d" % args.update_freq)
@@ -536,8 +539,8 @@ def main(args, ds_init):
         optimizer=optimizer, loss_scaler=loss_scaler, model_ema=model_ema)
 
     if args.eval:
-        test_stats = evaluate(data_loader_val, model, device)
-        print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
+        test_stats = evaluate(data_loader_val, model, device,n_eval_steps=args.eval_steps)
+        print(f"Accuracy of the network on the {args.eval_steps*args.batch_size} test images: {test_stats['acc1']:.1f}%")
         exit(0)
 
     print(f"Start training for {args.epochs} epochs")
@@ -561,7 +564,7 @@ def main(args, ds_init):
                     args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
                     loss_scaler=loss_scaler, epoch=epoch, model_ema=model_ema)
         if data_loader_val is not None:
-            test_stats = evaluate(data_loader_val, model, device)
+            test_stats = evaluate(data_loader_val, model, device,args.eval_steps)
             print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
             if max_accuracy < test_stats["acc1"]:
                 max_accuracy = test_stats["acc1"]
