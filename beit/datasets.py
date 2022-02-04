@@ -122,7 +122,7 @@ def build_dataset(is_train, args):
          if is_train:
             dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.TRAIN)
          else:
-            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.EVAL)
+            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.VAL)
          nb_classes = args.nb_classes
     else:
         raise NotImplementedError()
