@@ -8,4 +8,3 @@ python run_class_finetuning.py --model beit_base_patch16_224 --data_path "/gener
                 --device cuda \
                 --train_dataset_sample_size 20000 \
                 --eval_steps 10 \
-                --eval
