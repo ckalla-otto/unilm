@@ -22,6 +22,7 @@ from timm.data import create_transform
 from dall_e.utils import map_pixels
 from masking_generator import MaskingGenerator
 from dataset_folder import ImageFolder
+from tf_rec_loader import create_dataset
 
 
 class DataAugmentationForBEiT(object):
@@ -116,6 +117,10 @@ def build_dataset(is_train, args):
         dataset = ImageFolder(root, transform=transform)
         nb_classes = args.nb_classes
         assert len(dataset.class_to_idx) == nb_classes
+    elif args.data_set == "tfrecord":
+         root = args.data_path if is_train else args.eval_data_path
+         dataset = create_dataset(data_base_folder=root)
+         nb_classes = args.nb_classes
     else:
         raise NotImplementedError()
     assert nb_classes == args.nb_classes

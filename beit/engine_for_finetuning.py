@@ -23,7 +23,7 @@ import utils
 
 def train_class_batch(model, samples, target, criterion):
     outputs = model(samples)
-    loss = criterion(outputs, target)
+    loss = criterion(outputs, target.squeeze())
     return loss, outputs
 
 
@@ -51,7 +51,9 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     else:
         optimizer.zero_grad()
 
-    for data_iter_step, (samples, targets) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
+    for data_iter_step, batch in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
+        samples = batch["image/data"]
+        targets = batch["class/pbk"]
         step = data_iter_step // update_freq
         if step >= num_training_steps_per_epoch:
             continue
@@ -71,7 +73,9 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
             samples, targets = mixup_fn(samples, targets)
 
         if loss_scaler is None:
-            samples = samples.half()
+            #half precision only for gpu
+            if device.type != "cpu":
+                samples = samples.half()
             loss, output = train_class_batch(
                 model, samples, targets, criterion)
         else:
@@ -86,9 +90,12 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
             sys.exit(1)
 
         if loss_scaler is None:
-            loss /= update_freq
-            model.backward(loss)
-            model.step()
+            #loss /= update_freq
+            loss.backward()
+            optimizer.step()
+
+            #model.backward(loss)
+            #model.step()
 
             if (data_iter_step + 1) % update_freq == 0:
                 # model.zero_grad()
@@ -96,7 +103,8 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                 if model_ema is not None:
                     model_ema.update(model)
             grad_norm = None
-            loss_scale_value = get_loss_scale_for_deepspeed(model)
+            loss_scale_value = -1
+            #loss_scale_value = get_loss_scale_for_deepspeed(model)
         else:
             # this attribute is added by timm on one optimizer (adahessian)
             is_second_order = hasattr(optimizer, 'is_second_order') and optimizer.is_second_order
@@ -110,7 +118,8 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     model_ema.update(model)
             loss_scale_value = loss_scaler.state_dict()["scale"]
 
-        torch.cuda.synchronize()
+        if device.type != "cpu":
+            torch.cuda.synchronize()
 
         if mixup_fn is None:
             class_acc = (output.max(-1)[-1] == targets).float().mean()
