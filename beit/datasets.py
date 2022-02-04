@@ -120,9 +120,9 @@ def build_dataset(is_train, args):
     elif args.data_set == "tfrecord":
          root = args.data_path
          if is_train:
-            dataset = create_dataset(data_base_folder=root,DatasetType.TRAIN)
+            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.TRAIN)
          else:
-            dataset = create_dataset(data_base_folder=root,DatasetType.EVAL)
+            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.EVAL)
          nb_classes = args.nb_classes
     else:
         raise NotImplementedError()
