@@ -136,7 +136,8 @@ class MetricLogger(object):
         end = time.time()
         iter_time = SmoothedValue(fmt='{avg:.4f}')
         data_time = SmoothedValue(fmt='{avg:.4f}')
-        iterable_length = 20000
+        batch_size = 64
+        iterable_length = int(20000/batch_size)
         space_fmt = ':' + str(len(str(iterable_length))) + 'd'
         log_msg = [
             header,

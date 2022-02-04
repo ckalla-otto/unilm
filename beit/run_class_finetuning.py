@@ -258,6 +258,8 @@ def main(args, ds_init):
                 dataset_val, num_replicas=num_tasks, rank=global_rank, shuffle=False)
         else:
             sampler_val = torch.utils.data.SequentialSampler(dataset_val)
+        #Set val sampler always to None
+        sampler_val = None
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
         sampler_val = torch.utils.data.SequentialSampler(dataset_val)
