@@ -459,6 +459,7 @@ def main(args, ds_init):
     print('number of params:', n_parameters)
 
     total_batch_size = args.batch_size * args.update_freq * utils.get_world_size()
+    print("Total batch size: ")
     #we have about 20k images per tf record file
     num_training_steps_per_epoch = int(20000/total_batch_size) #len(dataset_train) // total_batch_size
     print("LR = %.8f" % args.lr)
