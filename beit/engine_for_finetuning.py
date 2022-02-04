@@ -23,7 +23,7 @@ import utils
 
 def train_class_batch(model, samples, target, criterion):
     outputs = model(samples)
-    loss = criterion(outputs, target.squeeze())
+    loss = criterion(outputs, target)
     return loss, outputs
 
 
@@ -53,7 +53,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
     for data_iter_step, batch in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         samples = batch["image/data"]
-        targets = batch["class/pbk"]
+        targets = batch["class/pbk"].squeeze()
         step = data_iter_step // update_freq
         if step >= num_training_steps_per_epoch:
             continue
