@@ -56,7 +56,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         targets = batch["class/pbk"].squeeze()
         step = data_iter_step // update_freq
         if step >= num_training_steps_per_epoch:
-            continue
+            break
         it = start_steps + step  # global training iteration
         # Update LR & WD for the first acc
         if lr_schedule_values is not None or wd_schedule_values is not None and data_iter_step % update_freq == 0:
