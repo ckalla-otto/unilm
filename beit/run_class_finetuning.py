@@ -197,6 +197,7 @@ def get_args():
                         help='url used to set up distributed training')
 
     parser.add_argument('--enable_deepspeed', action='store_true', default=False)
+    parser.add_argument('--disable_distributed_training', action='store_true', default=True)
     parser.add_argument("--eval_steps", type=int, default=10)
     parser.add_argument("--train_dataset_sample_size",type=int,required=True,)
     parser.add_argument("--num_training_steps_per_epoch",type=int,required=True)
