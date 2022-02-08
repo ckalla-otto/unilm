@@ -9,6 +9,7 @@
 # https://github.com/facebookresearch/deit/
 # https://github.com/facebookresearch/dino
 # --------------------------------------------------------'
+from ast import Return
 import os
 import torch
 
@@ -22,7 +23,7 @@ from timm.data import create_transform
 from dall_e.utils import map_pixels
 from masking_generator import MaskingGenerator
 from dataset_folder import ImageFolder
-from tf_rec_loader import create_dataset, DatasetType
+from tf_rec_loader import create_loader, DatasetType
 
 
 class DataAugmentationForBEiT(object):
@@ -120,9 +121,9 @@ def build_dataset(is_train, args):
     elif args.data_set == "tfrecord":
          root = args.data_path
          if is_train:
-            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.TRAIN)
+            dataset = create_loader(data_base_folder=root,dataset_type=DatasetType.TRAIN,return_dataset_only=True)
          else:
-            dataset = create_dataset(data_base_folder=root,dataset_type=DatasetType.VAL)
+            dataset = create_loader(data_base_folder=root,dataset_type=DatasetType.TEST,return_dataset_only=True)
          nb_classes = args.nb_classes
     else:
         raise NotImplementedError()

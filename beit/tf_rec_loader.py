@@ -39,14 +39,14 @@ def transform_mnist(pil_image: Image.Image):
     return data_normed
 
 
-def create_dataset(data_base_folder: Union[Path,str], batch_size: int = 32, dataset_type: DatasetType = DatasetType.TRAIN) ->torch.utils.data.DataLoader:
-    if isinstance(data_base_folder,str):
-        data_base_folder = Path(data_base_folder)
+
+def create_loader(data_base_folder: Path, batch_size: int = 32, dataset_type: DatasetType = DatasetType.TRAIN, use_sampler_for_balancing=True, return_dataset_only=False) ->torch.utils.data.DataLoader:
+
     files_in_data_folder = os.listdir(data_base_folder)
     files_in_folder = list(filter(lambda x: dataset_type.value in x, files_in_data_folder))
     split_percentage = 1/len(files_in_folder)
 
-    tfrecord_pattern = data_base_folder / (f"dataset_builder_basic_color-{dataset_type.value}"+".tfrecord-{}")
+    tfrecord_pattern = data_base_folder / Path(f"dataset_builder_hackathon-{dataset_type.value}"+".tfrecord-{}")
     #describes to what extent to sample from each tf record file
     splits = {}
     for current_file in files_in_folder:
@@ -54,44 +54,13 @@ def create_dataset(data_base_folder: Union[Path,str], batch_size: int = 32, data
         matched_string = current_file[match.start():match.end()]
         splits[matched_string] = split_percentage
 
-    description = {"image/data": "byte", "class/pbk": "int", "class/base_color": "int"}
-    dataset = MultiTFRecordDataset(str(tfrecord_pattern), None, splits,
-                                   description=description, transform=decode_image, infinite=False, shuffle_queue_size=1024)
-    return dataset
-
-
-def create_loader(data_base_folder: Path, batch_size: int = 32, dataset_type: DatasetType = DatasetType.TRAIN, use_sampler_for_balancing=True) ->torch.utils.data.DataLoader:
-
-    files_in_data_folder = os.listdir(data_base_folder)
-    files_in_folder = list(filter(lambda x: dataset_type.value in x, files_in_data_folder))
-    split_percentage = 1/len(files_in_folder)
-
-    tfrecord_pattern = data_base_folder / (f"dataset_builder_basic_color-{dataset_type.value}"+".tfrecord-{}")
-    #describes to what extent to sample from each tf record file
-    splits = {}
-    for current_file in files_in_folder:
-        match = re.search(r"\d+-of-\d+", current_file)
-        matched_string = current_file[match.start():match.end()]
-        splits[matched_string] = split_percentage
-
-    description = {"image/data": "byte", "class/pbk": "int", "class/base_color": "int"}
+    description = {"image/data": "byte", "class/label": "int"}
     dataset = MultiTFRecordDataset(str(tfrecord_pattern), None, splits,
                                    description=description, transform=decode_image, infinite=False, shuffle_queue_size=1024)
 
-    '''
-    if use_sampler_for_balancing:
-        weights = [1,2,3,4,5]
-        num_samples = 10
-        sampler = WeightedRandomSampler(weights, num_samples, replacement=True, generator=None)   
+    if return_dataset_only:
+        return dataset
     else:
-        sampler = None     
-    '''                    
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=os.cpu_count())
-    return loader
-
-
-def create_loader_mnist():
-    dataset = torchvision.datasets.MNIST(root=str(Config.GENERATED_CACHE_DIR), train=True, download=True, transform=transform_mnist)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=32, num_workers=os.cpu_count())
-    return loader
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=os.cpu_count())
+        return loader
 
