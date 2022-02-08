@@ -53,7 +53,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
     for data_iter_step, batch in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         samples = batch["image/data"]
-        targets = batch["class/pbk"].squeeze()
+        targets = batch["class/label"].squeeze()
         step = data_iter_step // update_freq
         if step >= num_training_steps_per_epoch:
             break
@@ -172,7 +172,7 @@ def evaluate(data_loader, model, device, n_eval_steps=10):
 
     for batch_idx, batch in enumerate(metric_logger.log_every(data_loader, 10, header)):
         images = batch["image/data"]
-        target = batch["class/pbk"].squeeze()
+        target = batch["class/label"].squeeze()
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
 
