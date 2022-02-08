@@ -30,7 +30,7 @@ cd "${ROOT_DIR}"
 
 #src/data/copy_data_from_bucket_sampled.sh
 echo "Copying training data..."
-./copy_data_from_bucket_sampled.sh
+./copy_data_from_bucket.sh
 
 echo "Starting training"
 sync_logs &
